@@ -14,6 +14,7 @@ setuptools.setup(
   entry_points={
     'console_scripts':[
       'cbuns-build=cbuns.commands.build:main',
+      'cbuns-trex=cbuns.steps.transform:trex'
     ],
   },
   packages=setuptools.find_packages(),
