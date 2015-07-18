@@ -4,6 +4,6 @@
   "main": [],
   "deps": {},
   "export": {
-    "src.c": ["func"],
+    "src.c": ["func"]
   }
 }

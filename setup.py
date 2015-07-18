@@ -13,6 +13,7 @@ setuptools.setup(
   license='MIT',
   entry_points={
     'console_scripts':[
+      'cbuns-build=cbuns.commands.build:main',
     ],
   },
   packages=setuptools.find_packages(),
