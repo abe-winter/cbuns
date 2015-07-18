@@ -1,0 +1,9 @@
+{
+  "name": "pkg1func",
+  "description": "sample package that exports one function",
+  "main": [],
+  "deps": {},
+  "export": {
+    "src.c": ["func"],
+  }
+}

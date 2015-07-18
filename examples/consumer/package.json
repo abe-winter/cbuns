@@ -1,0 +1,13 @@
+{
+  "name": "consumer",
+  "description": "sample package that consumes what the others export",
+  "main": [
+    'main.c'
+  ],
+  "deps": {
+    "../pkg1func": '',
+  },
+  "export": {
+    "src.c": ["func"],
+  }
+}
