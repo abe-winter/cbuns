@@ -4,8 +4,8 @@ import pycparser, argparse, collections
 
 class ParsingError(StandardError): pass
 
-class Trexer:
-  "transforming lexer"
+class Tralper:
+  "pre-transformation lexer pass"
   def __init__(self):
     # todo: tweak clex to supply whitespace (because we'll need to regenerate the file)
     self.clex = pycparser.c_lexer.CLexer(self.error, self.lbrace, self.rbrace, self.type_lookup)
@@ -77,11 +77,11 @@ def tok_compare(toks, specs):
     return False
   return True
 
-def trex():
-  parser = argparse.ArgumentParser(description="trex is the 'transforming lexer' for cbuns. this pre-pre-pre-processes C files, i.e. collects information on @import stmts")
-  parser.add_argument('path', help='path of file to trex')
+def pretralp():
+  parser = argparse.ArgumentParser(description="pretralp is the 'pre-transformation lexer pass' for cbuns. this pre-pre-pre-processes C files, i.e. collects information on @import stmts and symbol use")
+  parser.add_argument('path', help='path of file to pretralp')
   args = parser.parse_args()
-  trexer = Trexer()
-  trexer.process(open(args.path).read())
-  print trexer.summary()
+  tralper = Tralper()
+  tralper.process(open(args.path).read())
+  print tralper.summary()
 
