@@ -14,7 +14,9 @@ setuptools.setup(
   entry_points={
     'console_scripts':[
       'cbuns-build=cbuns.commands.build:main',
-      'cbuns-pretralp=cbuns.steps.transform:pretralp'
+      'cbuns-pretralp=cbuns.steps.pretralp:main'
+      'cbuns-imex=cbuns.steps.imex:main'
+      'cbuns-transform=cbuns.steps.transform:main'
     ],
   },
   packages=setuptools.find_packages(),
