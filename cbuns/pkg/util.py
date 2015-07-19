@@ -4,6 +4,8 @@ import os, hashlib, subprocess
 
 BUILD_DIR = '.build' # todo: look up from config instead
 
+class PackageError(StandardError): "errors relating to package defs"
+
 def ensure_dir(*paths):
   path = os.path.join(*paths)
   if not os.path.exists(path):

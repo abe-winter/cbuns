@@ -18,11 +18,15 @@ def transform_file(jpack, path):
   raise NotImplementedError # now for each dep, parse its transformed .build/c (i.e. run imex on it)
   raise NotImplementedError # sub in changes, write output
 
-def lib_globs(jpack, target_type, target):
-  "return union of globs. assume transform_pkg already checked target_type"
+def lib_globs(jpack, target_type, target, seen_libs=None):
+  "return union of globs. assume transform_pkg already checked target_type. recursive, emits PackageError if deps are cyclic"
+  seen_libs = seen_libs or set()
+  if (target_type, target) in seen_libs:
+    raise pkg.util.PackageError('cycle in lib_globs', (target_type, target))
+  seen_libs.add((target_type, target))
   spec = jpack[target_type][target]
   return sorted(set(sum(
-    [spec.get('globs', [])] + [lib_globs(jpack, 'lib', lib) for lib in spec.get('libs', [])],
+    [spec.get('globs', [])] + [lib_globs(jpack, 'lib', lib, seen_libs) for lib in spec.get('libs', [])],
     []
   )))
 
