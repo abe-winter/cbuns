@@ -2,7 +2,8 @@
 
 import os, hashlib, subprocess
 
-BUILD_DIR = '.build' # todo: look up from config instead
+BUILD_DIR = '.build' # todo: look up from config instead so this can be in /tmp or whatever, as the user needs
+REAL_C_DIR = 'real-c'
 
 class PackageError(StandardError): "errors relating to package defs"
 

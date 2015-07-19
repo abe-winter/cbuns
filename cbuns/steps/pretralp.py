@@ -54,9 +54,11 @@ class Tralper:
   def check_memory(self):
     "look at the token-list for a line, grab relevant tokens"
     if tok_compare(self.memory, ('@', 'import', 'LPAREN', 'STRING_LITERAL', 'COMMA', 'ID', 'RPAREN', 'SEMI')):
-      self.aliases[self.memory[5].value] = self.memory[3].value
+      pkg_path = self.memory[3].value[1:-1] # i.e. strip quotes
+      self.aliases[self.memory[5].value] = pkg_path
     elif tok_compare(self.memory, ('@', 'import', 'LPAREN', 'STRING_LITERAL', 'RPAREN', 'SEMI')):
-      self.aliases[os.path.split(self.memory[3].value)[-1]] = self.memory[3].value
+      pkg_path = self.memory[3].value[1:-1] # i.e. strip quotes
+      self.aliases[os.path.split(pkg_path)[-1]] = pkg_path
     else:
       for dotted in find_dotted_ids(self.memory):
         if dotted[0].value in self.aliases:

@@ -2,16 +2,24 @@
 
 import argparse, os, shutil, json, glob, collections, path
 from .. import pkg
-from . import pretralp
+from . import pretralp, imex
 
-def transform_file(jpack, path):
-  "transform a single file"
-  tralper = Tralper()
-  tralper.process(open(path).read())
+def transform_file(jpack, source, dest):
+  """transform a single file. write converted source to dest. if dest is None, print result.
+  returns bool indicating if file was transformed (True) or just copied (False).
+  """
+  tralper = pretralp.Tralper()
+  tralper.process(open(source).read())
   aliases, symbols = tralper.summary() # todo: this needs slices
   unk_paths = set(aliases.values()) - set(jpack['deps'])
   if unk_paths:
     raise ValueError('undeclared imports', unk_paths)
+  if not aliases:
+    if dest is None:
+      print open(source).read()
+    else:
+      shutil.copy2(source, dest)
+    return False
   raise NotImplementedError # now for each dep, parse its transformed .build/c (i.e. run imex on it)
   raise NotImplementedError # sub in changes, write output
 
@@ -56,14 +64,13 @@ def transform_pkg(pkgdir, target_type, target):
     raise ValueError('unk target_type', target_type)
   jpack = json.load(open(os.path.join(pkgdir, 'package.json')))
   
-  build_dir = pkg.util.ensure_dir(pkgdir, pkg.util.BUILD_DIR, 'real-c')
+  build_dir = pkg.util.ensure_dir(pkgdir, pkg.util.BUILD_DIR, pkg.util.REAL_C_DIR)
   paths = collect_globs(pkgdir, lib_globs(jpack, target_type, target))
   # note: glob will ignore .build by default because it ignores dotted dirs unless explicitly provided
   c_files = []
   for rglob in paths:
-    print 'todo translate:', rglob
     dest = os.path.join(build_dir, rglob.tail)
-    shutil.copy2(rglob.path, dest)
+    transform_file(jpack, rglob.path, dest)
     if dest.lower().endswith('.c'):
       c_files.append(dest)
   return c_files
@@ -75,7 +82,4 @@ def main():
   parser.add_argument('-o', '--out', help='path to output. if a folder, use same filename as input. if not given, use stdout')
   args = parser.parse_args()
 
-  # 1. tralp the thing
-  # 2. get exports
-  # 3. write with interpolation -- we're going to want line & slice of each substitution from symbols, and line for import stmts
-  raise NotImplementedError
+  transform_file(json.load(open(args.package)), args.path, args.out)
