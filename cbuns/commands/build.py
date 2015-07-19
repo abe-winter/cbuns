@@ -6,8 +6,8 @@ It uses the helpers in cbuns/steps.
 import argparse, json, os, subprocess, shutil, hashlib
 from .. import pkg, steps
 
-def build_slib(pkgdir):
-  c_files = steps.transform.transform(pkgdir)
+def build_slib(pkgdir, target):
+  c_files = steps.transform.transform_pkg(pkgdir, 'lib', target)
   lib_dir = pkg.util.ensure_dir(pkgdir, pkg.util.BUILD_DIR, pkg.util.slib_dir('gcc'))
   ofile = os.path.join(lib_dir, 'slib.o')
   subprocess.check_output(['gcc', '-c'] + c_files + ['-o', ofile])
@@ -15,7 +15,8 @@ def build_slib(pkgdir):
   # todo: ensure this matches jpack.name
   subprocess.check_output(['ar','rcs',os.path.join(lib_dir, 'lib' + libname + '.a'),ofile])
 
-def build_target(pkgdir, target):
+def build_main(pkgdir, target):
+  raise NotImplementedError('new transform')
   jpack = json.load(open(os.path.join(pkgdir, 'package.json')))
   libdirs = []
   libnames = []
@@ -34,15 +35,19 @@ def main():
   "entry point (defined in setup.py)"
   parser = argparse.ArgumentParser(description='build libs & executables')
   parser.add_argument('package_name', help='. means ./package.json. otherwise pass the name of something in cbuns_modules or global? hmm')
-  parser.add_argument('target', help='.slib, .dlib, * or the name of an entry-point. default *. entry-points starting with . need to be ".quoted", for example ".slib" can be the name of a custom entry point and won\'t be confused with .slib')
-  parser.add_argument('--compiler', default='gcc')
+  parser.add_argument('target_type', choices=('main','lib'))
+  parser.add_argument('target', help='name of target in package.json (the key within package.main or package.lib)')
+  parser.add_argument('--compiler', choices=('gcc',), default='gcc')
+  parser.add_argument('--libtype', choices=('static','dynamic'), default='static', help='for target_type=lib, this is what kind of lib gets build. for target_type=main, this is what gets imported')
   args = parser.parse_args()
 
   if args.compiler != 'gcc': raise NotImplementedError
 
-  if args.target == '.slib':
-    build_slib(args.package_name)
-  elif args.target == '.dlib': raise NotImplementedError
+  if args.target_type == 'lib':
+    if args.libtype != 'static': raise NotImplementedError
+    build_slib(args.package_name, args.target)
+  elif args.target_type == 'main':
+    if args.libtype != 'static': raise NotImplementedError
+    build_main(args.package_name, args.target)
   else:
-    build_target(args.package_name, args.target)
-
+    raise ValueError('unk target_type', args.target_type)

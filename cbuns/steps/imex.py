@@ -3,6 +3,9 @@
 import argparse, os, json
 from . import depgraph
 
+# todo: support magic values like pkg.__PATH__ for read access to pkg dir (i.e. for config, data files).
+#   hmm; do those files get bundled in a 'deploy package'? (what is a deploy package). how/where?
+
 class DepGraph:
   "dependency graph; collect declared deps from up the chain"
   # 1. create depgraph

@@ -1,6 +1,6 @@
 "transform.py -- this ingests 'cbuns code' (C with @import) at the lex level and transforms"
 
-import argparse, os, shutil, json
+import argparse, os, shutil, json, glob, collections, path
 from .. import pkg
 from . import pretralp
 
@@ -9,30 +9,62 @@ def transform_file(jpack, path):
   tralper = Tralper()
   tralper.process(open(path).read())
   aliases, symbols = tralper.summary() # todo: this needs slices
-  raise NotImplementedError # check that dep paths are in jpack
+  unk_paths = set(aliases.values()) - set(jpack['deps'])
+  extra_paths = set(jpack['deps']) - set(aliases.values())
+  if extra_paths:
+    print 'warning: packages in package.deps never used in @import()', extra_paths
+  if unk_paths:
+    raise ValueError('undeclared imports', unk_paths)
   raise NotImplementedError # now for each dep, parse its transformed .build/c (i.e. run imex on it)
   raise NotImplementedError # sub in changes, write output
 
-def transform_pkg(pkgdir, main_file=None):
-  "copy all the non-main C & H files to pkg/.build, as well as 0 or 1 main files (main_file arg)"
+def lib_globs(jpack, target_type, target):
+  "return union of globs. assume transform_pkg already checked target_type"
+  spec = jpack[target_type][target]
+  return sorted(set(sum(
+    [spec.get('globs', [])] + [lib_globs(jpack, 'lib', lib) for lib in spec.get('libs', [])],
+    []
+  )))
+
+# path is relative path from CWD (i.e. join(base, tail)).
+# tail gets appended to .build/c, for a result of e.g. .build/c/src/sub/file.c
+RelativeGlob = collections.namedtuple('RelativeGlob', 'path base tail')
+
+def relative_glob(basedir, glob_string):
+  "return list of RelativeGlob tuples"
+  # the path.Path contextmanager changes directory then rolls it back
+  with path.Path('.') / basedir as subdir:
+    return [
+      RelativeGlob(os.path.join(basedir, relpath), basedir, relpath)
+      for relpath in glob.glob(glob_string)
+    ]
+
+def collect_globs(pkgdir, globs):
+  "return list of unique paths pointed to by globs"
+  return set(
+    path
+    for glob_string in globs
+    for path in relative_glob(pkgdir, glob_string)
+  )
+
+def transform_pkg(pkgdir, target_type, target):
+  """copy all the non-main C & H files to pkg/.build, as well as 0 or 1 main files (main_file arg).
+  return c_files, a list of relative paths to C files in build dir (i.e. the list of sources to compile).
+  """
+  if target_type not in ('lib','main'):
+    raise ValueError('unk target_type', target_type)
   jpack = json.load(open(os.path.join(pkgdir, 'package.json')))
+  
   build_dir = pkg.util.ensure_dir(pkgdir, pkg.util.BUILD_DIR, 'real-c')
+  paths = collect_globs(pkgdir, lib_globs(jpack, target_type, target))
+  # note: glob will ignore .build by default because it ignores dotted dirs unless explicitly provided
   c_files = []
-  for dirname, subdirs, files in os.walk(pkgdir):
-    if any(pkg.util.hidden_dir(d) for d in dirname.split(os.path.sep)):
-      continue # don't recurse into dotted dirs
-    if any(f.endswith('.c') or f.endswith('.h') for f in [f_.lower() for f_ in files]):
-      copy_to = pkg.util.ensure_dir(build_dir, dirname)
-      print 'todo: translate', copy_to, files
-      for f in files:
-        # warning: join() != file isn't saying they're not the same. platform slash type etc.
-        # warning: this isn't nesting aware, it's making file names global.
-        if f in jpack.get('main', ()) and f != main_file:
-          continue
-        if f.lower().endswith('.c') or f.lower().endswith('.h'):
-          shutil.copy2(os.path.join(dirname, f), copy_to)
-        if f.lower().endswith('.c'):
-          c_files.append(os.path.join(dirname, f))
+  for rglob in paths:
+    print 'todo translate:', rglob
+    dest = os.path.join(build_dir, rglob.tail)
+    shutil.copy2(rglob.path, dest)
+    if dest.lower().endswith('.c'):
+      c_files.append(dest)
   return c_files
 
 def main():

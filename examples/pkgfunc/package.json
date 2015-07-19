@@ -1,7 +1,10 @@
 {
   "name": "pkgfunc",
   "description": "sample package that exports one function",
-  "main": [],
+  "main": {},
+  "lib": {
+    "default": {"libs":[], "globs":["*.[ch]"]}
+  },
   "deps": {},
   "export": {
     "src.c": ["func"]

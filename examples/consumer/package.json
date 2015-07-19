@@ -2,7 +2,7 @@
   "name": "consumer",
   "description": "sample package that consumes what the others export",
   "main": {
-    "consumer":"main.c"
+    "consumer": {"globs":["main.c"], "libs":[]}
   },
   "deps": {
     "../pkgfunc": ""

@@ -25,11 +25,13 @@ setuptools.setup(
       'cbuns-imex=cbuns.steps.imex:main',
       'cbuns-transform=cbuns.steps.transform:main',
       'cbuns-depgraph=cbuns.steps.depgraph:main',
+      'cbuns-run=cbuns.commands.run:main',
     ],
   },
   packages=setuptools.find_packages(),
   install_requires=[
     'pycparser',
     'networkx',
+    'path.py',
   ],
 )
