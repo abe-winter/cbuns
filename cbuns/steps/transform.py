@@ -10,9 +10,6 @@ def transform_file(jpack, path):
   tralper.process(open(path).read())
   aliases, symbols = tralper.summary() # todo: this needs slices
   unk_paths = set(aliases.values()) - set(jpack['deps'])
-  extra_paths = set(jpack['deps']) - set(aliases.values())
-  if extra_paths:
-    print 'warning: packages in package.deps never used in @import()', extra_paths
   if unk_paths:
     raise ValueError('undeclared imports', unk_paths)
   raise NotImplementedError # now for each dep, parse its transformed .build/c (i.e. run imex on it)
