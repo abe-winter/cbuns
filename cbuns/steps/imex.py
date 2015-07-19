@@ -1,6 +1,7 @@
 "imex -- 'import exports' from a cbuns package"
 
 import argparse, os, json
+from . import depgraph
 
 class DepGraph:
   "dependency graph; collect declared deps from up the chain"
@@ -19,8 +20,14 @@ class Imexer:
     # this has to tralp & preprocess
     raise NotImplementedError
 
+def collect_symbols(package):
+  build_order = depgraph.build_order(depgraph.deps(package))
+  raise NotImplementedError
+
 def imex():
-  parser = argparse.ArgumentParser(description="imex is the 'import exports' process for cbuns. this analyzes the package and the used symbols and prints the extern & typedefs that would be inserted in place of @import")
+  parser = argparse.ArgumentParser(description="""imex is the 'import exports' process for cbuns.
+    this analyzes the package and the used symbols and prints the extern & typedefs that would be inserted in place of @import.
+    the package must be 'built' (transformed to .build/c) for this to work.""")
   parser.add_argument('package', help='path to package.json')
   parser.add_argument('symbols', help='comma-separated list of symbols; e.g. "pkg.subpkg.function_name,pkg.function2" (leave out the quotes, but pkg prefix necessary)')
   args = parser.parse_args()
