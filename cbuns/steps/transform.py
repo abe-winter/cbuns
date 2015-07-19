@@ -4,7 +4,7 @@ import argparse, os, shutil, json, glob, collections, path
 from .. import pkg
 from . import pretralp, imex
 
-def transform_file(jpack, source, dest):
+def transform_file(pkgdir, jpack, source, dest):
   """transform a single file. write converted source to dest. if dest is None, print result.
   returns bool indicating if file was transformed (True) or just copied (False).
   """
@@ -20,6 +20,13 @@ def transform_file(jpack, source, dest):
     else:
       shutil.copy2(source, dest)
     return False
+  if len(aliases) != len(set(aliases.values())):
+    raise ValueError('looks like duplicate aliases', aliases.values())
+  lookup = {
+    alias: imex.Imexer(os.path.join(pkgdir, path, 'package.json')).find([symbol for symbol in symbols if symbol[0] == alias])
+    for alias, path in aliases.items()
+  }
+  print 'lookup', lookup
   raise NotImplementedError # now for each dep, parse its transformed .build/c (i.e. run imex on it)
   raise NotImplementedError # sub in changes, write output
 
@@ -77,9 +84,9 @@ def transform_pkg(pkgdir, target_type, target):
 
 def main():
   parser = argparse.ArgumentParser(description='transform a C file with @imports to straight C')
-  parser.add_argument('package', help='path to package.json (necessary because it defines exports)')
+  parser.add_argument('pkgdir', help='path to package')
   parser.add_argument('path', help='path of input file')
   parser.add_argument('-o', '--out', help='path to output. if a folder, use same filename as input. if not given, use stdout')
   args = parser.parse_args()
 
-  transform_file(json.load(open(args.package)), args.path, args.out)
+  transform_file(args.pkgdir, json.load(open(os.path.join(args.pkgdir, 'package.json'))), args.path, args.out)

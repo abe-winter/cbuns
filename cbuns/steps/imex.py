@@ -28,10 +28,10 @@ class CFunction(ExportObject):
 
   @property
   def cline(self):
-    "return templated ({prefix} and {name} are in braces) C code to patch in somewhere"
-    # todo: types need to be renamed too if not builtin
-    return '{prefix}%s {name}(%s);' % (
+    "return C code (extern decl) to patch in somewhere"
+    return 'extern %s %s(%s);' % (
       ' '.join(self.type),
+      self.name,
       ', '.join('%s %s' % (' '.join(types), arg) for types, arg in self.args)
     )
 
@@ -75,7 +75,7 @@ class Imexer:
         if not fname.lower().endswith('.c'): continue
         fullpath = os.path.join(dirname, fname)
         # warning below: platform-unsafe delimiter (and other horrors)
-        prefix = tuple(filter(None, os.path.split(fullpath[len(dirname):])[0].split('/')))
+        prefix = tuple(filter(None, os.path.split(fullpath[len(dirname):])[0].split('/'))) + (os.path.splitext(fname)[0],)
         res = scrape_c(fullpath)
         for name, value in res.items():
           # note below: overwriting here results in an extra name_usage entry. (there's also the 'folder + object same name' case)
@@ -88,6 +88,7 @@ class Imexer:
   def find(self, symbols):
     "return dict {symbol:list_of_c_lines}"
     # todo: all_symbols should return a DAG of functions & types
+    # we also need 'original package' annotations to know mangled import names
     full, direct, name2file = self.all_symbols()
     lines = {}
     for symbol in symbols:
@@ -106,8 +107,10 @@ class Imexer:
         raise RuntimeError('local "decl" was never set')
       if set(decl.types) - BUILTIN_TYPES:
         raise NotImplementedError('todo: include non-builtin types', set(decl.types) - BUILTIN_TYPES)
-      lines[symbol] = decl.cline
+      lines[symbol] = DeclLine(decl.name, decl.cline)
     return lines
+
+DeclLine = collections.namedtuple('DeclLine', 'name line')
 
 def collect_symbols(package):
   build_order = depgraph.build_order(depgraph.deps(package))
@@ -123,5 +126,5 @@ def main():
 
   symbols = [tuple(sym.split('.')) for sym in args.symbols.split(',')]
   imexer = Imexer(args.package)
-  for sym, cline in imexer.find(symbols).items():
-    print sym, cline
+  for sym, dline in imexer.find(symbols).items():
+    print sym, dline
