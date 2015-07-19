@@ -2,8 +2,18 @@
 
 import argparse, os, shutil, json
 from .. import pkg
+from . import pretralp
 
-def transform(pkgdir, main_file=None):
+def transform_file(jpack, path):
+  "transform a single file"
+  tralper = Tralper()
+  tralper.process(open(path).read())
+  aliases, symbols = tralper.summary() # todo: this needs slices
+  raise NotImplementedError # check that dep paths are in jpack
+  raise NotImplementedError # now for each dep, parse its transformed .build/c (i.e. run imex on it)
+  raise NotImplementedError # sub in changes, write output
+
+def transform_pkg(pkgdir, main_file=None):
   "copy all the non-main C & H files to pkg/.build, as well as 0 or 1 main files (main_file arg)"
   jpack = json.load(open(os.path.join(pkgdir, 'package.json')))
   build_dir = pkg.util.ensure_dir(pkgdir, pkg.util.BUILD_DIR, 'real-c')
