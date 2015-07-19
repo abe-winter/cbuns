@@ -1,5 +1,5 @@
 {
-  "name": "pkg1func",
+  "name": "pkgfunc",
   "description": "sample package that exports one function",
   "main": [],
   "deps": {},

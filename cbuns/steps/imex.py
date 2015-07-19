@@ -2,6 +2,13 @@
 
 import argparse, os, json
 
+class DepGraph:
+  "dependency graph; collect declared deps from up the chain"
+  # 1. create depgraph
+  # 2. pretralp each one to create the complete list of symbols
+  # 3. run imex in order (deepest deps to newest)
+  # 4. (external to this, the results are used by transform)
+
 class Imexer:
   "import exporter; create export declarations for imported symbols"
   def __init__(self, package):
