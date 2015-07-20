@@ -4,6 +4,19 @@ import argparse, os, shutil, json, glob, collections, path
 from .. import pkg
 from . import pretralp, imex
 
+# ImportSlice = collections.namedtuple('ImportSlice', 'path line slice')
+# SymbolSlice = collections.namedtuple('SymbolSlice', 'symbol line slice')
+
+def line_lookup(aliases, symbols):
+  # warning: duplicate @import statements ruin this. raise an error in tralper.
+  line2slice = collections.defaultdict(list)
+  for alias, import_slice in aliases.items():
+    # replace relative path with alias so we can look up extern lines
+    line2slice[import_slice.line].append(import_slice._replace(path=alias))
+  for symbol_slice in symbols:
+    line2slice[symbol_slice.line].append(symbol_slice)
+  return line2slice
+
 def transform_file(pkgdir, jpack, source, dest):
   """transform a single file. write converted source to dest. if dest is None, print result.
   returns bool indicating if file was transformed (True) or just copied (False).
@@ -11,7 +24,7 @@ def transform_file(pkgdir, jpack, source, dest):
   tralper = pretralp.Tralper()
   tralper.process(open(source).read())
   aliases, symbols = tralper.summary() # todo: this needs slices
-  unk_paths = set(aliases.values()) - set(jpack['deps'])
+  unk_paths = set(val.path for val in aliases.values()) - set(jpack['deps'])
   if unk_paths:
     raise ValueError('undeclared imports', unk_paths)
   if not aliases:
@@ -20,13 +33,18 @@ def transform_file(pkgdir, jpack, source, dest):
     else:
       shutil.copy2(source, dest)
     return False
-  if len(aliases) != len(set(aliases.values())):
+  if len(aliases) != len(set(val.path for val in aliases.values())):
     raise ValueError('looks like duplicate aliases', aliases.values())
   lookup = {
-    alias: imex.Imexer(os.path.join(pkgdir, path, 'package.json')).find([symbol for symbol in symbols if symbol[0] == alias])
-    for alias, path in aliases.items()
+    alias: imex.Imexer(
+      os.path.join(pkgdir, path.path, 'package.json')
+    ).find(
+      {symbol.symbol for symbol in symbols if symbol.symbol[0] == alias}
+    ) for alias, path in aliases.items()
   }
+  #
   print 'lookup', lookup
+  print 'line_lookup', line_lookup(aliases, symbols)
   raise NotImplementedError # replace imports with lines, symbols with names in lexer intermediate (need more from tralper)
   raise NotImplementedError # write formatted lexer output
 
