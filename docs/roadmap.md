@@ -9,6 +9,7 @@
   - command line invocation & flags
 1. import a small but real codebase; zlib
 1. am I using the package.exports field? use it or get rid of it.
+1. treecompare with hashes.json instead of 'rebuild everything & pray no files were deleted'
 1. dynamic libs instead of static-everything
 
 ### future goals
