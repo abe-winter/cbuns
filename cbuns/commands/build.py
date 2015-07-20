@@ -16,19 +16,18 @@ def build_slib(pkgdir, target):
   subprocess.check_output(['ar','rcs',os.path.join(lib_dir, 'lib' + libname + '.a'),ofile])
 
 def build_main(pkgdir, target):
-  raise NotImplementedError('new transform')
   jpack = json.load(open(os.path.join(pkgdir, 'package.json')))
   libdirs = []
   libnames = []
   for dep in jpack['deps']:
     # todo: config whether to make dlibs or slibs? dlibs are only interesting for expensive global deps.
     # todo: convert dirs to a type so that global dep vs path dep is easier to manage
-    build_slib(dep)
-    libdirs.append(os.path.join(dep, pkg.util.BUILD_DIR, slib_dir('gcc')))
+    build_slib(os.path.join(pkgdir, dep), 'default') # todo: need to specify target
+    libdirs.append(os.path.join(pkgdir, dep, pkg.util.BUILD_DIR, pkg.util.slib_dir('gcc')))
     libnames.append(os.path.split(dep)[-1])
-  c_files = transform(pkgdir, jpack['main'][target])
+  c_files = steps.transform.transform_pkg(pkgdir, 'main', target)
   # todo: this needs an architecture hash as well as version
-  build_dir = ensure_dir(pkgdir, BUILD_DIR, 'target-%s-%s' % (target, compiler_version('gcc')))
+  build_dir = pkg.util.ensure_dir(pkgdir, pkg.util.BUILD_DIR, 'target-%s-%s' % (target, pkg.util.compiler_version('gcc')))
   subprocess.check_output(['gcc'] + c_files + ['-L'+ld for ld in libdirs] + ['-l'+lib for lib in libnames] + ['-o',os.path.join(build_dir,target)])
 
 def main():

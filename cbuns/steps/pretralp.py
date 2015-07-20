@@ -39,7 +39,8 @@ def mk_lextoken(type, value, lineno, lexpos):
 def toklist2slice(toklist):
   "error if toklist is empty"
   a, b = toklist[0], toklist[-1]
-  return slice(a.lexpos, b.lexpos + len(b.value))
+  # -1 below because this stuff is 1-indexed
+  return slice(a.lexpos - 1, b.lexpos - 1 + len(b.value))
 
 class Tralper:
   "pre-transformation lexer pass"

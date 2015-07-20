@@ -17,6 +17,10 @@ def line_lookup(aliases, symbols):
     line2slice[symbol_slice.line].append(symbol_slice)
   return line2slice
 
+def merge_slice(string, slice, interp):
+  "return string replaced with interp at slice"
+  return string[:slice.start] + interp + string[slice.stop:]
+
 def transform_file(pkgdir, jpack, source, dest):
   """transform a single file. write converted source to dest. if dest is None, print result.
   returns bool indicating if file was transformed (True) or just copied (False).
@@ -28,10 +32,8 @@ def transform_file(pkgdir, jpack, source, dest):
   if unk_paths:
     raise ValueError('undeclared imports', unk_paths)
   if not aliases:
-    if dest is None:
-      print open(source).read()
-    else:
-      shutil.copy2(source, dest)
+    if dest is None: print open(source).read()
+    else: shutil.copy2(source, dest)
     return False
   if len(aliases) != len(set(val.path for val in aliases.values())):
     raise ValueError('looks like duplicate aliases', aliases.values())
@@ -42,11 +44,26 @@ def transform_file(pkgdir, jpack, source, dest):
       {symbol.symbol for symbol in symbols if symbol.symbol[0] == alias}
     ) for alias, path in aliases.items()
   }
-  #
-  print 'lookup', lookup
-  print 'line_lookup', line_lookup(aliases, symbols)
-  raise NotImplementedError # replace imports with lines, symbols with names in lexer intermediate (need more from tralper)
-  raise NotImplementedError # write formatted lexer output
+  line2slice = line_lookup(aliases, symbols)
+  out = ''
+  for i, line in enumerate(open(source)):
+    if i in line2slice:
+      if len(line2slice[i]) != 1: raise NotImplementedError('support multi-slice')
+      slice_, = line2slice[i]
+      if isinstance(slice_, pretralp.ImportSlice):
+        # dedup because pkg.file.name and pkg.name can generate dupes
+        # warning: this is replacing the whole line. lexpos doesn't do what I thought.
+        out += '\n'.join(sorted(set(decl.line for decl in lookup[slice_.path].values()))) + '\n'
+      elif isinstance(slice_, pretralp.SymbolSlice):
+        # warning: this is way bad. there could be a copy of this in a string literal and we're dead
+        out += line.replace('.'.join(slice_.symbol), slice_.symbol[-1])
+      else:
+        raise TypeError('unk type', type(slice_), slice_)
+    else:
+      out += line
+  if dest is None: print out
+  else: open(dest, 'w').write(out)
+  return True
 
 def lib_globs(jpack, target_type, target, seen_libs=None):
   "return union of globs. assume transform_pkg already checked target_type. recursive, emits PackageError if deps are cyclic"
@@ -95,7 +112,7 @@ def transform_pkg(pkgdir, target_type, target):
   c_files = []
   for rglob in paths:
     dest = os.path.join(build_dir, rglob.tail)
-    transform_file(jpack, rglob.path, dest)
+    transform_file(pkgdir, jpack, rglob.path, dest)
     if dest.lower().endswith('.c'):
       c_files.append(dest)
   return c_files
