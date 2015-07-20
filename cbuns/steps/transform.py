@@ -27,8 +27,8 @@ def transform_file(pkgdir, jpack, source, dest):
     for alias, path in aliases.items()
   }
   print 'lookup', lookup
-  raise NotImplementedError # now for each dep, parse its transformed .build/c (i.e. run imex on it)
-  raise NotImplementedError # sub in changes, write output
+  raise NotImplementedError # replace imports with lines, symbols with names in lexer intermediate (need more from tralper)
+  raise NotImplementedError # write formatted lexer output
 
 def lib_globs(jpack, target_type, target, seen_libs=None):
   "return union of globs. assume transform_pkg already checked target_type. recursive, emits PackageError if deps are cyclic"

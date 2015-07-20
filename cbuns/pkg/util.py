@@ -28,3 +28,26 @@ def slib_dir(compiler):
 
 def hidden_dir(d):
   return d not in ('.','..') and d.startswith('.')
+
+def std_include_paths(compiler):
+  "return list of standard include paths"
+  # warning: I think this is for the aliased LLVM on osx
+  # warning: parsing human-readable output is a disaster
+  if compiler != 'gcc': raise ValueError('unk compiler', compiler)
+  # note: no idea what the GCC args are below
+  proc = subprocess.Popen(['gcc','-xc','-E','-v','-'], stdin=subprocess.PIPE, stdout=open(os.devnull, 'w'), stderr=subprocess.PIPE)
+  proc.stdin.close()
+  res = proc.stderr.read().splitlines()
+  proc.wait()
+  active = False
+  includes = []
+  for line in res:
+    if active:
+      if line.startswith('End of search list.'):
+        active = False
+      elif not line.startswith('#'):
+        # strip because of indent, split because of stuff like '/System/Library/Frameworks (framework directory)'
+        includes.append(line.strip().split()[0])
+    elif line.startswith('#include'):
+      active = True
+  return includes

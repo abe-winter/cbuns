@@ -33,5 +33,6 @@ setuptools.setup(
     'pycparser',
     'networkx',
     'path.py',
+    'ply',
   ],
 )
