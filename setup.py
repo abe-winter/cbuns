@@ -34,5 +34,6 @@ setuptools.setup(
     'networkx',
     'path.py',
     'ply',
+    'pybfd',
   ],
 )

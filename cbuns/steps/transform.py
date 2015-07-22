@@ -21,6 +21,9 @@ def merge_slice(string, slice, interp):
   "return string replaced with interp at slice"
   return string[:slice.start] + interp + string[slice.stop:]
 
+def sub_file(slices, interps):
+  raise NotImplementedError # todo next
+
 def transform_file(pkgdir, jpack, source, dest):
   """transform a single file. write converted source to dest. if dest is None, print result.
   returns bool indicating if file was transformed (True) or just copied (False).

@@ -46,7 +46,7 @@ def build_order(g):
   return networkx.topological_sort(g, reverse=True)
 
 def main():
-  parser = argparse.ArgumentParser(description='print a dependency graph for a cbuns project')
+  parser = argparse.ArgumentParser(description='print the dependency tree for a cbuns project')
   parser.add_argument('path', help='path to package (not to package.json, just the dir). (what happens if this gets a global package?)')
   args = parser.parse_args()
 
