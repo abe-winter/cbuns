@@ -1,17 +1,17 @@
 ## cbuns
 
-cbuns is a package manager & pre-preprocessor for C. It adds an `@import` statement for C files and provides tooling.
+cbuns is a package manager & pre-preprocessor for C. It adds an `@import` statement for C files and provides tooling. package-aware name mangling causes the linker to do a lot of the work of dependency resolution.
 
 ## why
 
 C is ubiquitous but limited package management supports creates a number of bad effects for systems building on top of it:
-1. bad modularity of code, especially for large projects.
+1. bad modularity of code, especially for large monolithic projects (an operating system, for example). among other things, bad modularity / versioning breaks the performance advantage of incremental builds.
 1. every C library you use introduces a dpkg (or yum, or rpm) dependency for your program. or even worse, a manual user install step. or you have to package the depended library with your app.
 1. no central listing of C packages contributes to issues like heartbleed (nobody knew or cared where openssl was coming from) and lack of community support for critical libraries
 1. C builds are all nonstandard and complicated, especially on non-unix platforms. #include doesn't give any instructions to the linker.
 1. one-letter language name is hard to search (for real)
 1. preprocessor based #include means the compiler has to handle big (= slow) source files
-1. with IoT and web assembly on the way, and moore's law slowing down, low level langauges will be more relevant in the next decade than the last (but we need improved tooling)
+1. with IoT and web assembly on the way, and moore's law slowing down, low level langauges will be more relevant in the next decade than the last (if the tooling can catch up)
 1. hard to swap out libraries when the universe changes (for example heartbleed & openssl) because libraries often introduce complicated build requirements
 
 cbuns aims to standardize builds, replacing autoconf & makefiles for some applications. Building a small & medium C project on a platform with cbuns support should be brainless. Large projects may not be as tractable, but will hopefully be able to use some of the build infrastructure.
