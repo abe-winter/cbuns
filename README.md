@@ -5,6 +5,7 @@ cbuns is a package manager & pre-preprocessor for C. It adds an `@import` statem
 ## why
 
 C is ubiquitous but limited package management supports creates a number of bad effects for systems building on top of it:
+
 1. bad modularity of code, especially for large monolithic projects (an operating system, for example). among other things, bad modularity / versioning breaks the performance advantage of incremental builds.
 1. every C library you use introduces a dpkg (or yum, or rpm) dependency for your program. or even worse, a manual user install step. or you have to package the depended library with your app.
 1. no central listing of C packages contributes to issues like heartbleed (nobody knew or cared where openssl was coming from) and lack of community support for critical libraries
@@ -18,6 +19,7 @@ C is ubiquitous but limited package management supports creates a number of bad 
 cbuns aims to standardize builds, replacing autoconf & makefiles for some applications. Building a small & medium C project on a platform with cbuns support should be brainless. Large projects may not be as tractable, but will hopefully be able to use some of the build infrastructure.
 
 There are disadvantages to cbuns as well:
+
 1. enhanced namespacing features are backwards incompatible with traditional linking. i.e. cbuns can support `zlib.compress`, meaning `compress` is the function name, but traditionally it would be `zlib_compress`.
 1. lack of support for Makefiles & other complex build systems can branch key projects if this catches on.
 
