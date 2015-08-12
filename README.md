@@ -13,6 +13,7 @@ C is ubiquitous but limited package management supports creates a number of bad 
 1. preprocessor based #include means the compiler has to handle big (= slow) source files
 1. with IoT and web assembly on the way, and moore's law slowing down, low level langauges will be more relevant in the next decade than the last (if the tooling can catch up)
 1. hard to swap out libraries when the universe changes (for example heartbleed & openssl) because libraries often introduce complicated build requirements
+1. not that we shouldn't be building operating systems in rust/nim, but *for now* a lot of low-level systems are written in C and need better build tools.
 
 cbuns aims to standardize builds, replacing autoconf & makefiles for some applications. Building a small & medium C project on a platform with cbuns support should be brainless. Large projects may not be as tractable, but will hopefully be able to use some of the build infrastructure.
 
